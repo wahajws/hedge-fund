@@ -33,6 +33,15 @@ export function createApp() {
   });
 
   app.use('/api', apiRouter);
+  app.use('/', apiRouter);
+
+  app.use((req, res) => {
+    res.status(404).json({
+      requestId: req.requestId,
+      error: 'NotFound',
+      message: `API route not found: ${req.method} ${req.originalUrl}`
+    });
+  });
 
   app.use((error, req, res, _next) => {
     logger.error({ error, requestId: req.requestId }, 'API request failed');
@@ -46,4 +55,3 @@ export function createApp() {
 
   return app;
 }
-

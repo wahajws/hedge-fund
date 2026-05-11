@@ -20,6 +20,10 @@ function latestMacro(seriesId) {
   return [...store.macroIndicators].reverse().find((row) => row.seriesId === seriesId);
 }
 
+function hasNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
 export class MarketIntelligenceService {
   generateSignals() {
     const signals = [];
@@ -32,7 +36,7 @@ export class MarketIntelligenceService {
     const uso = latestMarket('USO') ?? latestMarket('WTI');
     const usdjpy = latestMarket('USDJPY');
 
-    if (us10y?.change !== null && Math.abs(us10y.change) >= 0.05) {
+    if (hasNumber(us10y?.change) && Math.abs(us10y.change) >= 0.05) {
       signals.push(this.signal({
         type: 'yield_spike',
         level: Math.abs(us10y.change) >= 0.12 ? 78 : 58,
@@ -111,7 +115,7 @@ export class MarketIntelligenceService {
       }));
     }
 
-    if (dollar?.change !== null && Math.abs(dollar.change) >= 0.75) {
+    if (hasNumber(dollar?.change) && Math.abs(dollar.change) >= 0.75) {
       signals.push(this.signal({
         type: 'dollar_shock',
         level: Math.abs(dollar.change) >= 1.5 ? 72 : 51,
@@ -172,4 +176,3 @@ export class MarketIntelligenceService {
 }
 
 export const marketIntelligenceService = new MarketIntelligenceService();
-
