@@ -23,15 +23,22 @@ function isPublicBrowserHost() {
   return typeof window !== 'undefined' && !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
 }
 
-function pointsToLoopback(value: string) {
-  return /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(?::\d+)?/i.test(value);
+function normalizeConfiguredBase(value: string) {
+  const trimmed = value.trim().replace(/^['"]|['"]$/g, '').replace(/\/$/, '');
+  try {
+    const url = new URL(trimmed);
+    const isLoopback = ['localhost', '127.0.0.1', '[::1]', '::1'].includes(url.hostname);
+    if (isPublicBrowserHost() && (isLoopback || url.protocol !== 'https:')) return '';
+    return trimmed;
+  } catch {
+    return isPublicBrowserHost() ? '' : trimmed;
+  }
 }
 
 function resolveApiBase() {
+  if (import.meta.env.PROD && isPublicBrowserHost()) return '';
   const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
-  if (configured && !(isPublicBrowserHost() && pointsToLoopback(configured))) {
-    return configured.replace(/\/$/, '');
-  }
+  if (configured) return normalizeConfiguredBase(configured);
   return import.meta.env.PROD ? '' : 'http://127.0.0.1:4000';
 }
 

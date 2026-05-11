@@ -32,15 +32,15 @@ npm run smoke:api
 
 ## Vercel Frontend Deployment
 
-This repository is Vercel-ready for the React frontend. In Vercel, set:
+This repository is Vercel-ready for the React frontend and same-origin serverless API routes. In Vercel, set:
 
 - Framework Preset: `Vite`
 - Build Command: `npm run build`
 - Output Directory: `dist`
-- Environment variable `VITE_API_BASE_URL` to your deployed API URL
-- Environment variable `VITE_WS_URL` to your deployed websocket URL
+- Do not set `VITE_API_BASE_URL` to `localhost` or `127.0.0.1`. Leave it unset for Vercel same-origin `/api/*` routes.
+- Do not set `VITE_WS_URL` to a local websocket URL. Vercel serverless functions do not host the long-running local websocket server.
 
-The Express backend should be deployed as a long-running Node service on infrastructure such as Render, Railway, Fly.io, ECS, Kubernetes, or a container host. The backend is Docker-ready through `Dockerfile.api` and `docker-compose.prod.yml`.
+For a separate long-running backend, deploy the Express service on infrastructure such as Render, Railway, Fly.io, ECS, Kubernetes, or a container host, then set `VITE_API_BASE_URL` to the HTTPS API origin and `VITE_WS_URL` to the WSS websocket origin. The backend is Docker-ready through `Dockerfile.api` and `docker-compose.prod.yml`.
 
 ## Documentation
 
@@ -51,4 +51,3 @@ The Express backend should be deployed as a long-running Node service on infrast
 - Phase 6 frontend: `README_PHASE_6_FRONTEND.md`
 - Phase 8 enterprise readiness: `README_PHASE_8_ENTERPRISE_READINESS.md`
 - Operational docs: `docs/phase8/`
-

@@ -12,11 +12,23 @@ export function useLiveEvents() {
 
   useEffect(() => {
     const isPublicHost = !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-    const isLoopbackWs = (value: string) => /^wss?:\/\/(127\.0\.0\.1|localhost|\[::1\])(?::\d+)?/i.test(value);
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    if (import.meta.env.PROD && isPublicHost) {
+      setStatus('closed');
+      return;
+    }
     const configured = import.meta.env.VITE_WS_URL as string | undefined;
     const defaultUrl = import.meta.env.PROD ? null : 'ws://127.0.0.1:4000/ws';
-    const url = configured && !(isPublicHost && isLoopbackWs(configured)) ? configured : defaultUrl;
+    let url = defaultUrl;
+    if (configured) {
+      const trimmed = configured.trim().replace(/^['"]|['"]$/g, '');
+      try {
+        const parsed = new URL(trimmed);
+        const isLoopback = ['localhost', '127.0.0.1', '[::1]', '::1'].includes(parsed.hostname);
+        url = isPublicHost && (isLoopback || parsed.protocol !== 'wss:') ? null : trimmed;
+      } catch {
+        url = isPublicHost ? null : trimmed;
+      }
+    }
     if (!url) {
       setStatus('closed');
       return;
