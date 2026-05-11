@@ -19,7 +19,23 @@ import type {
   WorkflowDetail
 } from './types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? '' : 'http://127.0.0.1:4000');
+function isPublicBrowserHost() {
+  return typeof window !== 'undefined' && !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+}
+
+function pointsToLoopback(value: string) {
+  return /^https?:\/\/(127\.0\.0\.1|localhost|\[::1\])(?::\d+)?/i.test(value);
+}
+
+function resolveApiBase() {
+  const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
+  if (configured && !(isPublicBrowserHost() && pointsToLoopback(configured))) {
+    return configured.replace(/\/$/, '');
+  }
+  return import.meta.env.PROD ? '' : 'http://127.0.0.1:4000';
+}
+
+const API_BASE = resolveApiBase();
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<ApiEnvelope<T>> {
   const response = await fetch(`${API_BASE}${path}`, {

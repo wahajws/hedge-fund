@@ -11,9 +11,17 @@ export function useLiveEvents() {
   const [status, setStatus] = useState<'connecting' | 'open' | 'closed'>('connecting');
 
   useEffect(() => {
+    const isPublicHost = !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+    const isLoopbackWs = (value: string) => /^wss?:\/\/(127\.0\.0\.1|localhost|\[::1\])(?::\d+)?/i.test(value);
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const defaultUrl = import.meta.env.PROD ? `${protocol}//${window.location.host}/ws` : 'ws://127.0.0.1:4000/ws';
-    const ws = new WebSocket(import.meta.env.VITE_WS_URL ?? defaultUrl);
+    const configured = import.meta.env.VITE_WS_URL as string | undefined;
+    const defaultUrl = import.meta.env.PROD ? null : 'ws://127.0.0.1:4000/ws';
+    const url = configured && !(isPublicHost && isLoopbackWs(configured)) ? configured : defaultUrl;
+    if (!url) {
+      setStatus('closed');
+      return;
+    }
+    const ws = new WebSocket(url);
     ws.onopen = () => setStatus('open');
     ws.onclose = () => setStatus('closed');
     ws.onerror = () => setStatus('closed');
