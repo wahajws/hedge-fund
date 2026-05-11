@@ -42,6 +42,8 @@ This repository is Vercel-ready for the React frontend and same-origin serverles
 
 For a separate long-running backend, deploy the Express service on infrastructure such as Render, Railway, Fly.io, ECS, Kubernetes, or a container host, then set `VITE_API_BASE_URL` to the HTTPS API origin and `VITE_WS_URL` to the WSS websocket origin. The backend is Docker-ready through `Dockerfile.api` and `docker-compose.prod.yml`.
 
+For public demo review, keep `PUBLIC_DEMO_MODE=true` or leave it unset. Turn off Vercel Deployment Protection in the Vercel dashboard if reviewers should access the preview without signing in.
+
 ## Documentation
 
 - Phase 1/2 strategy: `README_PHASE_1_2.md`

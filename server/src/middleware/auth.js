@@ -6,10 +6,18 @@ export function attachActor(req, _res, next) {
   const bearer = req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null;
   const serviceToken = req.headers['x-service-token'];
   const tokenActor = bearer ? authService.verifyToken(bearer) : null;
+  const demoActor = {
+    id: 'public-demo-cio',
+    role: 'cio',
+    name: 'Public Demo CIO',
+    tenantId: 'macro-fund',
+    teamId: 'global-macro',
+    authType: 'public-demo'
+  };
   if (env.authRequired && !tokenActor && serviceToken !== env.internalServiceToken) {
     req.authError = 'Authentication required';
   }
-  req.actor = tokenActor ?? actorFromRequest(req);
+  req.actor = tokenActor ?? (env.publicDemoMode ? demoActor : actorFromRequest(req));
   req.permissions = rolePermissions[req.actor.role] ?? rolePermissions.analyst;
   next();
 }
