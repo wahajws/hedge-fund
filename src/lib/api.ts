@@ -19,33 +19,8 @@ import type {
   WorkflowDetail
 } from './types';
 
-function isPublicBrowserHost() {
-  return typeof window !== 'undefined' && !['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-}
-
-function normalizeConfiguredBase(value: string) {
-  const trimmed = value.trim().replace(/^['"]|['"]$/g, '').replace(/\/$/, '');
-  try {
-    const url = new URL(trimmed);
-    const isLoopback = ['localhost', '127.0.0.1', '[::1]', '::1'].includes(url.hostname);
-    if (isPublicBrowserHost() && (isLoopback || url.protocol !== 'https:')) return '';
-    return trimmed;
-  } catch {
-    return isPublicBrowserHost() ? '' : trimmed;
-  }
-}
-
-function resolveApiBase() {
-  if (import.meta.env.PROD && isPublicBrowserHost()) return '';
-  const configured = import.meta.env.VITE_API_BASE_URL as string | undefined;
-  if (configured) return normalizeConfiguredBase(configured);
-  return import.meta.env.PROD ? '' : 'http://127.0.0.1:4000';
-}
-
-const API_BASE = resolveApiBase();
-
 async function request<T>(path: string, options: RequestInit = {}): Promise<ApiEnvelope<T>> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(path, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
