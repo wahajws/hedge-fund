@@ -19,8 +19,16 @@ import type {
   WorkflowDetail
 } from './types';
 
+function resolveApiBase() {
+  if (typeof window === 'undefined') return '';
+  const isLocalBrowser = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+  return isLocalBrowser ? 'http://127.0.0.1:4000' : '';
+}
+
+const API_BASE = resolveApiBase();
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<ApiEnvelope<T>> {
-  const response = await fetch(path, {
+  const response = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -29,6 +37,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<ApiE
       ...(options.headers ?? {})
     }
   });
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) {
+    const text = await response.text();
+    const preview = text.trim().slice(0, 120);
+    throw new Error(`Expected JSON from ${path}, received ${contentType || 'unknown content type'}: ${preview}`);
+  }
+
   const payload = await response.json();
   if (!response.ok) {
     throw new Error(payload.message ?? `API request failed: ${response.status}`);
