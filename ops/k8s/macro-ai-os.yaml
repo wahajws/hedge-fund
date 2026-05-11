@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: macro-ai-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: macro-ai-api
+  template:
+    metadata:
+      labels:
+        app: macro-ai-api
+    spec:
+      containers:
+        - name: api
+          image: macro-ai-os-api:latest
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - secretRef:
+                name: macro-ai-secrets
+            - configMapRef:
+                name: macro-ai-config
+          readinessProbe:
+            httpGet:
+              path: /api/ops/readiness
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 4000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: macro-ai-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: macro-ai-web
+  template:
+    metadata:
+      labels:
+        app: macro-ai-web
+    spec:
+      containers:
+        - name: web
+          image: macro-ai-os-web:latest
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: macro-ai-api
+spec:
+  selector:
+    app: macro-ai-api
+  ports:
+    - port: 4000
+      targetPort: 4000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: macro-ai-web
+spec:
+  selector:
+    app: macro-ai-web
+  ports:
+    - port: 8080
+      targetPort: 8080

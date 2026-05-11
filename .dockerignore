@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+*.log
+api-runtime.log
+api-runtime.err.log
+.git
